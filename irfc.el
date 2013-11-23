@@ -78,6 +78,7 @@
 ;; `irfc-render-toggle'         Toggle render status with RFC buffer.
 ;; `irfc-quit'                  Quit RFC buffer.
 ;; `irfc-visit'                 Ask for RFC number and visit document.
+;; `irfc-visit-sub-series'      Ask for RFC sub series and visit document.
 ;; `irfc-reference-goto'        Ask for RFC reference and jump to it.
 ;; `irfc-head-goto'             Ask for heading name and jump to it.
 ;; `irfc-head-number-goto'      Ask for heading number and jump to it.
@@ -130,6 +131,10 @@
 ;; whether it is already in `irfc-directory'.
 ;; And if you visit same document with your previous type, so just
 ;; hit RET, and don't need type RFC document number.
+;; 
+;; Command `irfc-visit-sub-series' will ask the user for a RFC
+;; sub series number (like STD1, FYI3 and so on).
+;; This command serve same functionality as `irfc-visit'.
 ;;
 ;; Command `irfc-reference-goto' will ask the user for a reference
 ;; number and will jump to that citation in the Normative
@@ -591,6 +596,9 @@ references.")
 regular-expressions that match a normative/informative
 reference.")
 
+(defvar irfc-sub-series-regex "^\\(std\\|bcp\\|fyi\\)\\([0-9]+\\)$"
+  "The regular-expression that users are expected to input as sub series query.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Interactive functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;###autoload
 (define-derived-mode irfc-mode text-mode "Irfc"
@@ -887,6 +895,21 @@ does not exist in `irfc-directory'."
                         irfc-last-visit-number)))
   (setq irfc-last-visit-number rfc-number)
   (irfc-open (format "rfc%s.txt" rfc-number)))
+
+;;;###autoload
+(defun irfc-visit-sub-series (sub-series-number)
+  "Open RFC sub series SUB-SERIES-NUMBER.
+Download and open RFC document if it does not exist in `irfc-directory'."
+  (interactive "sRFC series number (like STD1): ")
+  ;; TODO irfc-last-visit-number
+  (let* ((sub-series-number (downcase sub-series-number))
+         (series (progn
+                   (string-match irfc-sub-series-regex sub-series-number)
+                   (match-string 1 sub-series-number)))
+         (number (match-string 2 sub-series-number)))
+    (if (or (null series) (null number))
+        (message "Format is wrong!")
+      (irfc-open (format "%s/%s.txt" series sub-series-number)))))
 
 (defun irfc-head-goto (NAME)
   "Goto heading NAME."
