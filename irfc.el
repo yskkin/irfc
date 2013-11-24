@@ -596,8 +596,8 @@ references.")
 regular-expressions that match a normative/informative
 reference.")
 
-(defvar irfc-sub-series-regex "^\\(std\\|bcp\\|fyi\\)\\([0-9]+\\)$"
-  "The regular-expression that users are expected to input as sub series query.")
+(defvar irfc-sub-series-regex "^\\(std\\|bcp\\|fyi\\)?\\([0-9]+\\)$"
+  "The regular-expression that users are expected to input as (possibly) sub series query.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; Interactive functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;###autoload
@@ -898,18 +898,24 @@ does not exist in `irfc-directory'."
 
 ;;;###autoload
 (defun irfc-visit-sub-series (sub-series-number)
-  "Open RFC sub series SUB-SERIES-NUMBER.
-Download and open RFC document if it does not exist in `irfc-directory'."
-  (interactive "sRFC series number (like STD1): ")
-  ;; TODO irfc-last-visit-number
+  "Open RFC document SUB-SERIES-NUMBER.
+If SUB-SERIES-NUMBER starts with string \"STD\", \"BCP\" or \"FYI\",
+download and open the specified RFC sub series document if it does not exist in `irfc-directory'.
+Otherwise download and open RFC document if it does not exist in `irfc-directory'"
+  (interactive (list (read-string "sRFC series number (e.g. 5000, STD1): "
+                                  irfc-last-visit-number)))
+  (setq irfc-last-visit-number sub-series-number)
   (let* ((sub-series-number (downcase sub-series-number))
          (series (progn
                    (string-match irfc-sub-series-regex sub-series-number)
                    (match-string 1 sub-series-number)))
          (number (match-string 2 sub-series-number)))
-    (if (or (null series) (null number))
+    (if (or (null number)
+            (and (null series) (not (string-match "^[0-9]+$" sub-series-number))))
         (message "Format is wrong!")
-      (irfc-open (format "%s/%s.txt" series sub-series-number)))))
+      (if (null series)
+          (irfc-open (format "rfc%s.txt" number))
+        (irfc-open (format "%s/%s.txt" series sub-series-number))))))
 
 (defun irfc-head-goto (NAME)
   "Goto heading NAME."
