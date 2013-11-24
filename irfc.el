@@ -78,7 +78,6 @@
 ;; `irfc-render-toggle'         Toggle render status with RFC buffer.
 ;; `irfc-quit'                  Quit RFC buffer.
 ;; `irfc-visit'                 Ask for RFC number and visit document.
-;; `irfc-visit-sub-series'      Ask for RFC sub series and visit document.
 ;; `irfc-reference-goto'        Ask for RFC reference and jump to it.
 ;; `irfc-head-goto'             Ask for heading name and jump to it.
 ;; `irfc-head-number-goto'      Ask for heading number and jump to it.
@@ -124,17 +123,14 @@
 ;; You can use command `irfc-rfc-link-next' or `irfc-rfc-link-prev'
 ;; to jump next or previous RFC link in document.
 ;;
-;; Command `irfc-visit' will ask the user for a RFC number and will
+;; Command `irfc-visit' will ask the user for a RFC number (e.g. 5000, STD1)
+;; and will
 ;; visit that document, either from `irfc-directory', if exists, or by
 ;; downloading it.  This command can serve as entry point for Irfc,
 ;; to go to a RFC without having to visit the file or remember
 ;; whether it is already in `irfc-directory'.
 ;; And if you visit same document with your previous type, so just
 ;; hit RET, and don't need type RFC document number.
-;; 
-;; Command `irfc-visit-sub-series' will ask the user for a RFC
-;; sub series number (like STD1, FYI3 and so on).
-;; This command serve same functionality as `irfc-visit'.
 ;;
 ;; Command `irfc-reference-goto' will ask the user for a reference
 ;; number and will jump to that citation in the Normative
@@ -582,7 +578,7 @@ This variable is buffer-local in buffers where `irfc-mode' has
 been called.")
 
 (defvar irfc-last-visit-number nil
-  "Number of the last RFC document visited.")
+  "The last RFC document visited.")
 
 (defvar irfc-table-regex "^[ ]+\\([A-Z]?[0-9\\.]*\\)[ ]+\\([^\\.\n]+\\)[\\. ]+\\([0-9]+\\)$"
   "The regular-expression that match table item.")
@@ -884,20 +880,7 @@ does not exist in `irfc-directory'."
       (message "No valid RFC link found at cursor."))))
 
 ;;;###autoload
-(defun irfc-visit (&optional rfc-number)
-  "Open RFC document RFC-NUMBER.
-Download and open RFC document if it
-does not exist in `irfc-directory'."
-  (interactive)
-  (or rfc-number
-      (setq rfc-number (read-number
-                        "RFC document to visit: "
-                        irfc-last-visit-number)))
-  (setq irfc-last-visit-number rfc-number)
-  (irfc-open (format "rfc%s.txt" rfc-number)))
-
-;;;###autoload
-(defun irfc-visit-sub-series (sub-series-number)
+(defun irfc-visit (sub-series-number)
   "Open RFC document SUB-SERIES-NUMBER.
 If SUB-SERIES-NUMBER starts with string \"STD\", \"BCP\" or \"FYI\",
 download and open the specified RFC sub series document if it does not exist in `irfc-directory'.
